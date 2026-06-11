@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calculator {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 24px;
+      width: 300px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 13px;
+      font-weight: 500;
+      color: #888;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .screen {
+      background: #f9f9f9;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      text-align: right;
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .screen .expr {
+      font-size: 12px;
+      color: #aaa;
+      min-height: 18px;
+      word-break: break-all;
+    }
+
+    .screen .value {
+      font-size: 28px;
+      font-weight: 500;
+      color: #1a1a1a;
+      word-break: break-all;
+      line-height: 1.2;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    button {
+      height: 56px;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      background: #ffffff;
+      font-size: 15px;
+      font-weight: 500;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: background 0.1s;
+      user-select: none;
+    }
+
+    button:hover { background: #f5f5f5; }
+    button:active { transform: scale(0.96); background: #efefef; }
+
+    button.op { color: #3b7dd8; }
+    button.clear { color: #d84040; }
+
+    button.equals {
+      background: #eef4ff;
+      color: #3b7dd8;
+      border-color: #c5d9f5;
+    }
+
+    button.equals:hover { background: #deeaff; }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <h1>CALCULATOR</h1>
+    <div class="screen">
+      <div class="expr" id="expr"></div>
+      <div class="value" id="display">0</div>
+    </div>
+    <div class="grid">
+      <button class="clear" data-action="clear">C</button>
+      <button class="op" data-action="op" data-val="^">x^y</button>
+      <button class="op" data-action="op" data-val="%">%</button>
+      <button class="op" data-action="op" data-val="/">/</button>
+
+      <button data-action="num" data-val="7">7</button>
+      <button data-action="num" data-val="8">8</button>
+      <button data-action="num" data-val="9">9</button>
+      <button class="op" data-action="op" data-val="*">×</button>
+
+      <button data-action="num" data-val="4">4</button>
+      <button data-action="num" data-val="5">5</button>
+      <button data-action="num" data-val="6">6</button>
+      <button class="op" data-action="op" data-val="-">−</button>
+
+      <button data-action="num" data-val="1">1</button>
+      <button data-action="num" data-val="2">2</button>
+      <button data-action="num" data-val="3">3</button>
+      <button class="op" data-action="op" data-val="+">+</button>
+
+      <button data-action="op" data-val="\">\</button>
+      <button data-action="num" data-val="0">0</button>
+      <button data-action="decimal">.</button>
+      <button class="equals" data-action="equals">=</button>
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    const exprEl = document.getElementById('expr');
+    let current = '0', prev = null, op = null, justEvaled = false;
+
+    function updateDisplay(val) {
+      const str = String(val);
+      display.textContent = str.length > 12 ? parseFloat(str).toExponential(4) : str;
+    }
+
+    function calculate(a, b, operator) {
+      switch (operator) {
+        case '+': return +((a + b).toFixed(10));
+        case '-': return +((a - b).toFixed(10));
+        case '*': return +((a * b).toFixed(10));
+        case '/': return b === 0 ? 'Error' : +((a / b).toFixed(10));
+        case '%': return +((a % b).toFixed(10));
+        case '^': return +(Math.pow(a, b).toFixed(10));
+        default: return b;
+      }
+    }
+
+    document.querySelector('.grid').addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const val = btn.dataset.val;
+
+      if (action === 'num') {
+        if (justEvaled) { current = val; justEvaled = false; }
+        else current = current === '0' ? val : current + val;
+        updateDisplay(current);
+      }
+
+      if (action === 'decimal') {
+        if (justEvaled) { current = '0.'; justEvaled = false; }
+        else if (!current.includes('.')) current += '.';
+        updateDisplay(current);
+      }
+
+      if (action === 'op') {
+        if (val === '\\') {
+          current = String(parseInt(current));
+          exprEl.textContent = '';
+          updateDisplay(current);
+          justEvaled = true;
+          return;
+        }
+        if (prev !== null && op && !justEvaled) {
+          current = String(calculate(parseFloat(prev), parseFloat(current), op));
+          updateDisplay(current);
+        }
+        prev = current;
+        op = val;
+        justEvaled = false;
+        exprEl.textContent = prev + ' ' + val;
+        current = '0';
+      }
+
+      if (action === 'equals') {
+        if (prev === null || op === null) return;
+        const result = calculate(parseFloat(prev), parseFloat(current), op);
+        exprEl.textContent = prev + ' ' + op + ' ' + current + ' =';
+        current = String(result);
+        updateDisplay(current);
+        prev = null;
+        op = null;
+        justEvaled = true;
+      }
+
+      if (action === 'clear') {
+        current = '0';
+        prev = null;
+        op = null;
+        justEvaled = false;
+        exprEl.textContent = '';
+        updateDisplay('0');
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      const keyMap = {
+        '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9',
+        '+':'+','-':'-','*':'*','/':'/','%':'%','^':'^','.':'.',
+        'Enter':'=','Backspace':'backspace','Escape':'clear'
+      };
+      const mapped = keyMap[e.key];
+      if (!mapped) return;
+      if (mapped === 'backspace') {
+        current = current.length > 1 ? current.slice(0, -1) : '0';
+        updateDisplay(current);
+        return;
+      }
+      const selector = mapped === '='
+        ? '[data-action="equals"]'
+        : mapped === 'clear'
+        ? '[data-action="clear"]'
+        : `[data-val="${mapped}"]`;
+      const btn = document.querySelector(selector);
+      if (btn) btn.click();
+    });
+  </script>
+</body>
+</html>

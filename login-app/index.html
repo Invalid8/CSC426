@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #eef4ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon-wrap svg { width: 20px; height: 20px; stroke: #3b7dd8; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .header h1 { font-size: 17px; font-weight: 500; color: #1a1a1a; }
+    .header p { font-size: 13px; color: #888; margin-top: 2px; }
+
+    .msg {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .msg.error { display: flex; background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; }
+    .msg.success { display: flex; background: #f0faf4; color: #1e7e4a; border: 1px solid #b2dfcc; }
+    .msg svg { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .field { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      height: 42px;
+      padding: 0 14px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus { border-color: #3b7dd8; }
+    input.invalid { border-color: #e74c3c; }
+
+    .pw-wrap { position: relative; }
+
+    .pw-wrap input { padding-right: 42px; }
+
+    .toggle-pw {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-pw:hover { color: #555; }
+    .toggle-pw svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .field-err {
+      display: none;
+      font-size: 12px;
+      color: #e74c3c;
+      margin-top: 5px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .actions button {
+      flex: 1;
+      height: 44px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+      border: 1px solid #e0e0e0;
+    }
+
+    .actions button:active { transform: scale(0.97); }
+
+    .btn-login {
+      background: #3b7dd8;
+      color: #fff;
+      border-color: #3b7dd8 !important;
+    }
+
+    .btn-login:hover { background: #3270c4; }
+
+    .btn-reset {
+      background: #fff;
+      color: #555;
+    }
+
+    .btn-reset:hover { background: #f5f5f5; }
+
+    .hint {
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <h1>Welcome back</h1>
+        <p>Sign in to your account</p>
+      </div>
+    </div>
+
+    <div class="msg" id="msg" role="alert" aria-live="polite">
+      <svg id="msg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="msg-text"></span>
+    </div>
+
+    <div class="field">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Enter your username" autocomplete="username" />
+      <div class="field-err" id="err-user">Username is required.</div>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+        <button class="toggle-pw" id="toggle-pw" type="button" aria-label="Toggle password visibility">
+          <svg id="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="field-err" id="err-pass">Password must be at least 6 characters.</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-login" id="btn-login" type="button">Login</button>
+      <button class="btn-reset" id="btn-reset" type="button">Reset</button>
+    </div>
+
+    <p class="hint">Demo: <strong>admin</strong> / <strong>admin123</strong></p>
+  </div>
+
+  <script>
+    const USERS = { admin: 'admin123', user: 'password1' };
+
+    const usernameEl = document.getElementById('username');
+    const passwordEl = document.getElementById('password');
+    const msgEl = document.getElementById('msg');
+    const msgText = document.getElementById('msg-text');
+    const msgIcon = document.getElementById('msg-icon');
+    const errUser = document.getElementById('err-user');
+    const errPass = document.getElementById('err-pass');
+
+    const successIcon = `<circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>`;
+    const errorIcon = `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`;
+
+    function showMsg(type, text) {
+      msgEl.className = 'msg ' + type;
+      msgText.textContent = text;
+      msgIcon.innerHTML = type === 'success' ? successIcon : errorIcon;
+    }
+
+    function clearMsg() { msgEl.className = 'msg'; }
+
+    function setErr(input, errEl, show) {
+      errEl.style.display = show ? 'block' : 'none';
+      input.classList.toggle('invalid', show);
+    }
+
+    function validate() {
+      const u = usernameEl.value.trim();
+      const p = passwordEl.value;
+      let valid = true;
+      if (!u) { setErr(usernameEl, errUser, true); valid = false; } else { setErr(usernameEl, errUser, false); }
+      if (p.length < 6) { setErr(passwordEl, errPass, true); valid = false; } else { setErr(passwordEl, errPass, false); }
+      return valid;
+    }
+
+    document.getElementById('btn-login').addEventListener('click', () => {
+      clearMsg();
+      if (!validate()) return;
+      const u = usernameEl.value.trim();
+      const p = passwordEl.value;
+      if (USERS[u] && USERS[u] === p) {
+        showMsg('success', 'Login successful! Welcome, ' + u + '.');
+        usernameEl.disabled = true;
+        passwordEl.disabled = true;
+      } else {
+        showMsg('error', 'Invalid username or password. Please try again.');
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      usernameEl.value = '';
+      passwordEl.value = '';
+      usernameEl.disabled = false;
+      passwordEl.disabled = false;
+      setErr(usernameEl, errUser, false);
+      setErr(passwordEl, errPass, false);
+      clearMsg();
+      usernameEl.focus();
+    });
+
+    document.getElementById('toggle-pw').addEventListener('click', () => {
+      const show = passwordEl.type === 'password';
+      passwordEl.type = show ? 'text' : 'password';
+      document.getElementById('eye-icon').innerHTML = show
+        ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`
+        : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+    });
+
+    usernameEl.addEventListener('input', () => { if (usernameEl.value.trim()) setErr(usernameEl, errUser, false); });
+    passwordEl.addEventListener('input', () => { if (passwordEl.value.length >= 6) setErr(passwordEl, errPass, false); });
+
+    [usernameEl, passwordEl].forEach(el => {
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-login').click(); });
+    });
+  </script>
+</body>
+</html>
